@@ -86,21 +86,21 @@
 </head>
 <body>
 <nav id="topnav" aria-label="Patterns">
-  <div class="brand">Comparison Lab <small>10 patterns · tap a number to jump</small></div>
+  <div class="brand">Comparison Lab <small>4 patterns · tap a number to jump</small></div>
   <div class="links" id="navlinks"></div>
 </nav>
 <header class="hero">
-  <h1>Ten ways to compare two things.</h1>
-  <p>Each section is a <b>live visualizer pattern</b> for design docs and blog posts. Try them all, switch the demo content with the pills, and hit <b>Copy embed snippet</b> on the ones you like — you get a self-contained snippet to paste anywhere. Reference patterns by number.</p>
+  <h1>Four ways to compare two things.</h1>
+  <p>Each section is a <b>live visualizer pattern</b> for design docs and blog posts. Try them, switch the demo content with the pills, and hit <b>Copy embed snippet</b> on the ones you like — you get a self-contained snippet to paste anywhere. Reference patterns by number.</p>
 </header>
 <main id="main"></main>
-<footer>Built as a try-everything gallery. Snippets are dependency-free HTML + inline CSS/JS — paste into any page.</footer>
+<footer>The four keepers from the ten-pattern gallery. Snippets are dependency-free HTML + inline CSS/JS — paste into any page.</footer>
 <div id="toast" role="status"></div>
 
 <script>
 "use strict";
 /* ============================================================
-   Comparison Lab — single-file gallery of 10 comparison patterns.
+   Comparison Lab — single-file gallery of 4 comparison patterns.
    Each pattern is a factory: factory(pairId) -> {html, css, init}
    - html: markup string. Outermost element has class "__S__".
    - css:  stylesheet with "__S__" as the scoping placeholder.
@@ -251,9 +251,9 @@ var PAIRS={
 
 /* spec rows for the diff table, per pair */
 var SPECS={
-  img:[["Saturation","+0%","+45%"],["Contrast","1.00","1.18"],["Bloom / glow","Off","On"],["Film grain","Fine","Fine"],["Resolution","720 × 450","720 × 450"],["Composition","Identical","Identical"]],
-  ui:[["Background","#FFFDF8","#141824"],["Text","#3A2C1C","#EDEFF7"],["Accent","#E8833A","#5B8DEF"],["Corner radius","18 px","18 px"],["Fields","2","2"],["Button glow","None","Soft blue"]],
-  text:[["Tone","Neutral","Playful"],["Sentences","3","3"],["Reading time","~12 sec","~12 sec"],["Call to action","None","Implied"],["Jargon","None","None"],["Hook","None","“No signal? No problem.”"]]
+  img:[["Saturation","+0%","+45%","b"],["Contrast","1.00","1.18","b"],["Bloom / glow","Off","On","b"],["Film grain","Fine","Fine",null],["Resolution","720 × 450","720 × 450",null],["Composition","Identical","Identical",null]],
+  ui:[["Background","#FFFDF8","#141824",null],["Text","#3A2C1C","#EDEFF7",null],["Accent","#E8833A","#5B8DEF",null],["Corner radius","18 px","18 px",null],["Fields","2","2",null],["Button glow","None","Soft blue","b"]],
+  text:[["Tone","Neutral","Playful","b"],["Sentences","3","3",null],["Reading time","~12 sec","~12 sec",null],["Call to action","None","Implied","b"],["Jargon","None","None",null],["Hook","None","“No signal? No problem.”","b"]]
 };
 
 /* bespoke icons: 24px grid, 1.9px stroke, round caps, currentColor */
@@ -387,34 +387,6 @@ function fSlider(pid){
 }
 
 /* ================= 02 · Side-by-side ================= */
-function fSide(pid){
-  var P=PAIRS[pid];
-  function pane(label,content){
-    var body = P.fit==='cover'
-      ? '<div style="aspect-ratio:16/10;overflow:hidden">'+content+'</div>'
-      : '<div style="padding:22px;min-height:280px;display:flex;align-items:center;justify-content:center">'+content+'</div>';
-    return '<div class="pane" style="flex:1 1 0;min-width:0;background:#fff;border:1px solid #eee2cd;border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease">'
-      +'<div style="padding:10px 14px;font-weight:800;font-size:13px;letter-spacing:.03em;border-bottom:1px solid #f3ead6">'+label+'</div>'+body+'</div>';
-  }
-  var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-    +'<div class="srow" style="display:flex;gap:12px;align-items:stretch">'
-    +pane(P.la,P.a)+pane(P.lb,P.b)+'</div></div>';
-  var css='@media (max-width:600px){__S__ .srow{flex-direction:column}}'
-    +'__S__.hot .pane{box-shadow:0 10px 26px rgba(232,131,58,.28);transform:translateY(-3px);border-color:#e8833a}';
-  function init(root){
-    var panes=root.querySelectorAll('.pane');
-    var canHover=window.matchMedia('(hover: hover)').matches;
-    panes.forEach(function(p){
-      if(canHover){
-        p.addEventListener('mouseenter',function(){root.classList.add('hot');});
-        p.addEventListener('mouseleave',function(){root.classList.remove('hot');});
-      }else{
-        p.addEventListener('click',function(){root.classList.toggle('hot');});
-      }
-    });
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ================= 03 · A/B toggle ================= */
 function fToggle(pid){
@@ -446,169 +418,42 @@ function fToggle(pid){
 }
 
 /* ================= 04 · Tap-to-flip card ================= */
-function fFlip(pid){
-  var P=PAIRS[pid];
-  var fr = pid==='img' ? 'aspect-ratio:16/10;' : (pid==='ui' ? 'min-height:400px;' : 'min-height:300px;');
-  function face(which,extra){
-    var c=which==='a'?P.a:P.b;
-    var inner = P.fit==='cover' ? c
-      : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:26px;box-sizing:border-box"><div style="width:100%;max-width:430px">'+c+'</div></div>';
-    return '<div class="face" style="position:absolute;inset:0;overflow:hidden;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border:1px solid #eee2cd;'+extra+'">'+inner+'</div>';
-  }
-  var html='<div class="__S__" style="max-width:560px;margin:0 auto;perspective:1400px;-webkit-perspective:1400px">'
-    +'<div class="flip" style="position:relative;'+fr+'transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .65s cubic-bezier(.25,.7,.3,1.15);cursor:pointer;touch-action:manipulation">'
-    +face('a','')+face('b','transform:rotateY(180deg);-webkit-transform:rotateY(180deg);')
-    +'</div>'
-    +'<div style="text-align:center;margin-top:10px;font-size:13px;color:#8a7a64;font-weight:600">Tap the card to flip</div>'
-    +'</div>';
-  var css='__S__.flipped .flip{transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}'
-    +'@media (prefers-reduced-motion:reduce){__S__ .flip{transition:none}}';
-  function init(root){
-    root.querySelector('.flip').addEventListener('click',function(){root.classList.toggle('flipped');});
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ================= 05 · Tabs ================= */
-function fTabs(pid){
-  var P=PAIRS[pid];
-  function panel(which){
-    var c=which==='a'?P.a:P.b;
-    var inner = P.fit==='cover'
-      ? '<div style="border-radius:14px;overflow:hidden;aspect-ratio:16/10">'+c+'</div>'
-      : '<div style="padding:26px 6px">'+c+'</div>';
-    return '<div class="panel p'+which+'" role="tabpanel">'+inner+'</div>';
-  }
-  var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-    +'<div class="tabbar" role="tablist" style="display:flex;gap:4px;border-bottom:2px solid #eee2cd;margin-bottom:16px">'
-    +'<button class="tab on" data-v="a" role="tab" style="touch-action:manipulation">'+P.la+'</button>'
-    +'<button class="tab" data-v="b" role="tab" style="touch-action:manipulation">'+P.lb+'</button></div>'
-    +'<div class="panels" style="display:grid">'+panel('a')+panel('b')+'</div>'
-    +'</div>';
-  var css='__S__ .tab{border:none;background:none;padding:10px 18px;font-size:15px;font-weight:700;color:#8a7a64;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit}'
-    +'__S__ .tab.on{color:#2b2118;border-bottom-color:#e8833a}'
-    +'__S__ .panel{grid-area:1/1;transition:opacity .35s ease;opacity:0;pointer-events:none}'
-    +'__S__ .panel.on{opacity:1;pointer-events:auto}'
-    +'@media (prefers-reduced-motion:reduce){__S__ .panel{transition:none}}';
-  function init(root){
-    var tabs=root.querySelectorAll('.tab'), panels=root.querySelectorAll('.panel');
-    tabs.forEach(function(t){
-      t.addEventListener('click',function(){
-        tabs.forEach(function(x){x.classList.remove('on');});
-        panels.forEach(function(p){p.classList.remove('on');});
-        t.classList.add('on');
-        root.querySelector('.p'+t.getAttribute('data-v')).classList.add('on');
-      });
-    });
-    root.querySelector('.pa').classList.add('on');
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ================= 06 · Blend slider ================= */
-function fBlend(pid){
-  var P=PAIRS[pid];
-  var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-   +'<div class="stage" style="position:relative;border-radius:16px;overflow:hidden;background:#e7e0d2;'+frameStyle(pid)+'">'
-   + fillInner(P,'a')
-   + '<div class="bl-top" style="position:absolute;inset:0;opacity:0">'+fillInner(P,'b')+'</div>'
-   + '<span class="bl-tag" style="left:10px">'+P.la+'</span><span class="bl-tag" style="right:10px">'+P.lb+'</span>'
-   +'</div>'
-   +'<div style="display:flex;align-items:center;gap:12px;margin-top:14px">'
-   +'<input class="bl-range" type="range" min="0" max="100" value="0" step="1" aria-label="Blend toward '+P.lb+'" style="flex:1;accent-color:#e8833a;height:34px;touch-action:manipulation;min-width:0">'
-   +'<span class="bl-pct" style="font-variant-numeric:tabular-nums;font-weight:800;font-size:14px;min-width:50px;text-align:right">0%</span>'
-   +'<button class="bl-play" style="display:inline-flex;align-items:center;gap:7px;border:1px solid #eee2cd;background:#fff;border-radius:999px;padding:10px 16px;font-weight:700;font-size:13.5px;cursor:pointer;touch-action:manipulation;color:#2b2118;font-family:inherit;flex:0 0 auto"><span style="width:18px;height:18px;display:block">'+IC.play+'</span>Animate</button>'
-   +'</div></div>';
-  var css='__S__ .bl-tag{position:absolute;top:10px;z-index:3;font-size:12px;font-weight:800;letter-spacing:.05em;padding:6px 11px;border-radius:999px;background:rgba(24,18,10,.66);color:#fff;pointer-events:none}';
-  function init(root){
-    var top=root.querySelector('.bl-top'), range=root.querySelector('.bl-range'),
-        pct=root.querySelector('.bl-pct'), play=root.querySelector('.bl-play'), raf=null;
-    var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function set(v){
-      v=Math.max(0,Math.min(100,v));
-      top.style.opacity=(v/100).toFixed(3);
-      range.value=Math.round(v);
-      pct.textContent=Math.round(v)+'%';
-    }
-    range.addEventListener('input',function(){
-      if(raf){cancelAnimationFrame(raf);raf=null;}
-      set(parseFloat(range.value));
-    });
-    play.addEventListener('click',function(){
-      if(raf){cancelAnimationFrame(raf);raf=null;return;}
-      if(reduced){set(100);return;}
-      var t0=null;
-      function tick(t){
-        if(!t0)t0=t;
-        var p=(t-t0)/2600;
-        if(p>=1){raf=null;set(0);return;}
-        set(Math.sin(p*Math.PI)*100);
-        raf=requestAnimationFrame(tick);
-      }
-      raf=requestAnimationFrame(tick);
-    });
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ================= 07 · Wipe reveal ================= */
-function fWipe(pid){
-  var P=PAIRS[pid];
-  var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-   +'<div class="stage" style="position:relative;border-radius:16px;overflow:hidden;background:#e7e0d2;'+frameStyle(pid)+'cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none">'
-   + fillInner(P,'a')
-   + '<div class="wipe" style="position:absolute;inset:0;clip-path:polygon(-30% 0,-12% 0,-12% 100%,-30% 100%);filter:drop-shadow(-3px 0 6px rgba(255,255,255,.9))">'+fillInner(P,'b')+'</div>'
-   + '<span class="wp-tag" style="left:10px">'+P.la+'</span><span class="wp-tag" style="right:10px">'+P.lb+'</span>'
-   +'</div>'
-   +'<div style="margin-top:12px"><button class="replay" style="display:inline-flex;align-items:center;gap:8px;background:#2b2118;color:#fff8ea;border:none;border-radius:12px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;touch-action:manipulation;font-family:inherit"><span style="width:18px;height:18px;display:block">'+IC.replay+'</span>Replay wipe</button></div>'
-   +'</div>';
-  var css='__S__ .wp-tag{position:absolute;top:10px;z-index:3;font-size:12px;font-weight:800;letter-spacing:.05em;padding:6px 11px;border-radius:999px;background:rgba(24,18,10,.66);color:#fff;pointer-events:none}';
-  function init(root){
-    var wipe=root.querySelector('.wipe'), stage=root.querySelector('.stage'), raf=null;
-    var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function draw(x){
-      wipe.style.clipPath='polygon('+(x-18)+'% 0,'+x+'% 0,'+x+'% 100%,'+(x-18)+'% 100%)';
-    }
-    function play(){
-      if(raf)cancelAnimationFrame(raf);
-      if(reduced){draw(118);raf=null;return;}
-      var t0=null;
-      function tick(t){
-        if(!t0)t0=t;
-        var p=Math.min(1,(t-t0)/1400), e=1-Math.pow(1-p,3);
-        draw(-12+e*130);
-        if(p<1)raf=requestAnimationFrame(tick); else raf=null;
-      }
-      raf=requestAnimationFrame(tick);
-    }
-    root.querySelector('.replay').addEventListener('click',function(e){e.stopPropagation();play();});
-    stage.addEventListener('click',play);
-    draw(-12);
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ================= 08 · Diff table ================= */
 function fDiff(pid){
   var P=PAIRS[pid], rows=SPECS[pid];
+  var wins={a:0,b:0};
+  rows.forEach(function(r){ if(r[3]==='a')wins.a++; else if(r[3]==='b')wins.b++; });
+  var colWin=wins.a===wins.b?null:(wins.a>wins.b?'a':'b');
   var thS='text-align:left;padding:12px 14px;font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#8a7a64;border-bottom:1px solid #eee2cd;background:#faf5ec';
   var tdS='padding:11px 14px;border-bottom:1px solid #f3ead6;color:#2b2118;vertical-align:top';
+  function badge(){return ' <span class="winbadge">winner</span>';}
   var trs=rows.map(function(r){
-    var diff=r[1]!==r[2];
-    return '<tr class="'+(diff?'isdiff':'same')+'"><td style="'+tdS+';font-weight:700">'+r[0]+'</td><td style="'+tdS+'">'+r[1]+'</td><td style="'+tdS+'">'+r[2]+'</td></tr>';
+    var wa=r[3]==='a', wb=r[3]==='b';
+    return '<tr><td style="'+tdS+';font-weight:700">'+r[0]+'</td>'
+      +'<td style="'+tdS+'"'+(wa?' class="wincell"':'')+'>'+r[1]+'</td>'
+      +'<td style="'+tdS+'"'+(wb?' class="wincell"':'')+'>'+r[2]+'</td></tr>';
   }).join('');
-  var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-   +'<div class="difftoggle" role="switch" aria-checked="false" tabindex="0" style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;font-weight:700;font-size:14px;margin-bottom:12px">'
+  var html='<div class="__S__ showdiff" style="max-width:780px;margin:0 auto">'
+   +'<div class="difftoggle" role="switch" aria-checked="true" tabindex="0" style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;font-weight:700;font-size:14px;margin-bottom:12px">'
    +'<span class="sw" style="position:relative;width:46px;height:26px;border-radius:999px;background:#e2d5bd;transition:background .25s;flex:0 0 auto"><span class="knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:left .25s"></span></span>'
-   +'Highlight differences</div>'
+   +'Highlight winners</div>'
    +'<div style="overflow-x:auto;border:1px solid #eee2cd;border-radius:14px;background:#fff">'
    +'<table style="width:100%;border-collapse:collapse;font-size:14px;min-width:430px">'
-   +'<thead><tr><th style="'+thS+'">Feature</th><th style="'+thS+'">'+P.la+'</th><th style="'+thS+'">'+P.lb+'</th></tr></thead>'
-   +'<tbody>'+trs+'</tbody></table></div></div>';
+   +'<thead><tr><th style="'+thS+'">Feature</th><th style="'+thS+'">'+P.la+(colWin==='a'?badge():'')+'</th><th style="'+thS+'">'+P.lb+(colWin==='b'?badge():'')+'</th></tr></thead>'
+   +'<tbody>'+trs+'</tbody></table></div>'
+   +'<div style="margin-top:10px;font-size:13px;color:#8a7a64;font-weight:600">'+P.la+' '+wins.a+' · '+P.lb+' '+wins.b+'</div></div>';
   var css='__S__ tbody tr{transition:background .2s ease}'
    +'__S__ tbody tr:hover td{background:#faf4e8}'
-   +'__S__.showdiff tr.isdiff td{background:#fff1dc}'
-   +'__S__.showdiff tr.isdiff td:first-child{box-shadow:inset 3px 0 0 #e8833a}'
+   +'__S__ td.wincell{font-weight:800}'
+   +'__S__.showdiff td.wincell{background:#e9f6e4}'
+   +'__S__ .winbadge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;background:#2f7d3a;color:#fff;border-radius:999px;padding:3px 9px;margin-left:8px;vertical-align:2px;text-transform:uppercase}'
    +'__S__.showdiff .sw{background:#e8833a}'
    +'__S__.showdiff .knob{left:23px}';
   function init(root){
@@ -726,80 +571,15 @@ function fCarousel(){
 }
 
 /* ================= 10 · Lens magnifier ================= */
-function fLens(pid){
-  var P=PAIRS[pid];
-  var base = P.fit==='cover'
-    ? '<div style="position:absolute;inset:0">'+P.a+'</div>'
-    : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:#f4eee1"><div style="width:100%;max-width:380px">'+P.a+'</div></div>';
-  var html='<div class="__S__" style="position:relative;max-width:780px;margin:0 auto;border-radius:16px;overflow:hidden;aspect-ratio:16/10;background:#e7e0d2;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:crosshair">'
-   + base
-   + '<div class="lsrc" style="display:none">'+P.b+'</div>'
-   + '<div class="lens" style="position:absolute;width:150px;height:150px;border-radius:50%;border:3px solid #fff;box-shadow:0 10px 28px rgba(0,0,0,.35);overflow:hidden;display:none;pointer-events:none;background:#fff">'
-   + '<div class="limg" style="position:absolute;top:0;left:0"></div></div>'
-   + '<span class="lhint" style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(24,18,10,.66);color:#fff;pointer-events:none;white-space:nowrap">Drag to inspect</span>'
-   + '</div>';
-  var css='';
-  function init(root){
-    var lens=root.querySelector('.lens'), limg=root.querySelector('.limg'),
-        src=root.querySelector('.lsrc').innerHTML;
-    var Z=2.2, R=75, pidn=null, active=false, lock=null, sx=0, sy=0;
-    function sizeLens(){
-      var r=root.getBoundingClientRect();
-      limg.style.width=(r.width*Z)+'px';
-      limg.style.height=(r.height*Z)+'px';
-      limg.innerHTML=src;
-      var im=limg.querySelector('img');
-      if(im){im.style.width='100%';im.style.height='100%';im.style.objectFit='cover';im.style.display='block';}
-    }
-    sizeLens();
-    window.addEventListener('resize',sizeLens);
-    function move(cx,cy){
-      var r=root.getBoundingClientRect();
-      var x=Math.max(R,Math.min(r.width-R,cx-r.left));
-      var y=Math.max(R,Math.min(r.height-R,cy-r.top));
-      lens.style.display='block';
-      lens.style.left=(x-R)+'px'; lens.style.top=(y-R)+'px';
-      limg.style.transform='translate('+(-(x*Z-R))+'px,'+(-(y*Z-R))+'px)';
-    }
-    function hide(){lens.style.display='none';}
-    root.addEventListener('pointerdown',function(e){
-      active=true; lock=null; sx=e.clientX; sy=e.clientY; pidn=e.pointerId;
-      if(e.pointerType==='touch'){try{root.setPointerCapture(pidn);}catch(_){}}
-      else move(e.clientX,e.clientY);
-    });
-    root.addEventListener('pointermove',function(e){
-      if(e.pointerType!=='touch'){move(e.clientX,e.clientY);return;}
-      if(!active||e.pointerId!==pidn)return;
-      var dx=e.clientX-sx, dy=e.clientY-sy;
-      if(lock===null){
-        if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy))lock='x';
-        else if(Math.abs(dy)>12){lock='y';active=false;return;}
-        else return;
-      }
-      if(lock==='x'){move(e.clientX,e.clientY);if(e.cancelable)e.preventDefault();}
-    });
-    root.addEventListener('pointerleave',function(e){if(e.pointerType!=='touch')hide();});
-    function up(e){if(e.pointerId===pidn){active=false;lock=null;hide();}}
-    root.addEventListener('pointerup',up);
-    root.addEventListener('pointercancel',up);
-  }
-  return {html:html,css:css,init:init};
-}
 
 /* ============================================================
    Lab wiring: sections, pair tabs, embed copy, toast, nav
    ============================================================ */
 var SECTIONS=[
-  {n:'01',name:'Drag slider',when:'The classic before/after — best when the change is spatial: grades, crops, retouching.',f:fSlider,def:'img'},
-  {n:'02',name:'Side-by-side',when:'Let the eye roam free — best for holistic impressions: layouts, themes, moods.',f:fSide,def:'img'},
+  {n:'01',name:'Thin-bar slider',when:'Your design-doc call: the Notch — a 6×24px tick on a 2px line. No circle, no chevrons.',f:fSlider,def:'img'},
+  {n:'02',name:'Winner diff table',when:'Every row crowns a winner (bold); the side with the most wins takes the column badge.',f:fDiff,def:'text'},
   {n:'03',name:'A/B toggle',when:'One switch, one stage — best when you want a verdict, not a scrub.',f:fToggle,def:'img'},
-  {n:'04',name:'Tap-to-flip card',when:'A playful reveal — best for punchy before/afters in tight spaces.',f:fFlip,def:'img'},
-  {n:'05',name:'Tabs',when:'Clean labeled switching — best for copy variants and text-heavy options.',f:fTabs,def:'text'},
-  {n:'06',name:'Blend slider',when:'Dissolve between versions — best for subtle grades and fine-tuning.',f:fBlend,def:'img'},
-  {n:'07',name:'Wipe reveal',when:'Drama first — best for presentations and hero moments.',f:fWipe,def:'img'},
-  {n:'08',name:'Diff table',when:'Specs, not vibes — best when the differences are facts to scan.',f:fDiff,def:'text'},
-  {n:'09',name:'Option carousel',when:'Three or more options — best for browsing a set one card at a time. Filter chips included.',f:fCarousel,def:'all',carousel:true},
-  {n:'10',name:'Lens magnifier',when:'Inspect the details — best when the difference hides in the pixels.',f:fLens,def:'img'}
+  {n:'04',name:'Option carousel',when:'The goated one — browse a set one card at a time. Filter chips included.',f:fCarousel,def:'all',carousel:true}
 ];
 
 var toastT=null;
