@@ -283,44 +283,105 @@ function fillInner(P,which){
 function fSlider(pid){
   var P=PAIRS[pid];
   var html=
-   '<div class="__S__" style="position:relative;overflow:hidden;border-radius:16px;max-width:780px;margin:0 auto;'+frameStyle(pid)+'touch-action:pan-y;user-select:none;-webkit-user-select:none;background:#e7e0d2;cursor:ew-resize">'
+   '<div class="__S__" role="slider" aria-label="Comparison slider: '+P.la+' versus '+P.lb+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0" style="position:relative;overflow:hidden;border-radius:16px;max-width:780px;margin:0 auto;'+frameStyle(pid)+'touch-action:none;user-select:none;-webkit-user-select:none;background:#e7e0d2;cursor:ew-resize">'
    + fillInner(P,'b')
    + '<div class="sl-top" style="position:absolute;inset:0;clip-path:inset(0 50% 0 0)">'+fillInner(P,'a')+'</div>'
-   + '<div class="sl-div" style="position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 10px rgba(0,0,0,.4);pointer-events:none">'
-   + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#2b2118"><span style="width:24px;height:24px;display:block">'+IC.drag+'</span></div></div>'
+   + '<div class="sl-div" style="position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.35);pointer-events:none">'
+   + '<div class="sl-notch" style="position:absolute;top:50%;left:50%;width:6px;height:24px;border-radius:3px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);transform:translate(-50%,-50%)"></div></div>'
    + '<span class="sl-tag" style="left:10px">'+P.la+'</span>'
    + '<span class="sl-tag" style="right:10px">'+P.lb+'</span>'
    + '</div>';
-  var css='__S__ .sl-tag{position:absolute;top:10px;z-index:3;font-size:12px;font-weight:800;letter-spacing:.05em;padding:6px 11px;border-radius:999px;background:rgba(24,18,10,.66);color:#fff;pointer-events:none}';
+  var css='__S__ .sl-tag{position:absolute;top:10px;z-index:3;font-size:12px;font-weight:800;letter-spacing:.05em;padding:6px 11px;border-radius:999px;background:rgba(24,18,10,.66);color:#fff;pointer-events:none}'
+   +'__S__ .sl-notch{transition:transform .18s ease}'
+   +'__S__.dragging .sl-notch{transform:translate(-50%,-50%) scale(1.35)}'
+   +'__S__:focus{outline:2px solid #e8833a;outline-offset:3px}';
+  /* Grab-anytime: touch-action:none + pointer capture owns the touch even
+     mid-scroll. 12px direction lock: horizontal drives the divider 1:1
+     (rAF-throttled); vertical scrolls the page manually 1:1 with momentum
+     on release. Tap (<6px, <300ms) glides the divider to the tap point. */
   function init(root){
     var top=root.querySelector('.sl-top'), dv=root.querySelector('.sl-div');
-    var pos=50, down=false, lock=null, sx=0, sy=0, sp=0, pid=null;
+    var pos=50, down=false, lock=null, sx=0, sy=0, sp=pos, pid=null, t0=0;
+    var rafId=null, pendP=null, glideId=null, momId=null;
+    var lastY=0, lastT=0, vel=0;
     function set(p){
-      pos=Math.max(3,Math.min(97,p));
+      pos=Math.max(2,Math.min(98,p));
       top.style.clipPath='inset(0 '+(100-pos)+'% 0 0)';
       dv.style.left=pos+'%';
+      root.setAttribute('aria-valuenow',Math.round(pos));
+    }
+    function setRaf(p){pendP=p;if(rafId)return;rafId=requestAnimationFrame(function(){rafId=null;set(pendP);});}
+    function stopGlide(){if(glideId){cancelAnimationFrame(glideId);glideId=null;}}
+    function stopMom(){if(momId){cancelAnimationFrame(momId);momId=null;}}
+    function glideTo(t){
+      stopGlide();
+      var from=pos, target=Math.max(2,Math.min(98,t)), s=performance.now(), D=380;
+      function fr(now){
+        var k=Math.min(1,(now-s)/D), e=1-Math.pow(1-k,3);
+        set(from+(target-from)*e);
+        if(k<1)glideId=requestAnimationFrame(fr);else glideId=null;
+      }
+      glideId=requestAnimationFrame(fr);
     }
     root.addEventListener('pointerdown',function(e){
-      down=true; lock=null; sx=e.clientX; sy=e.clientY; sp=pos; pid=e.pointerId;
+      stopGlide(); stopMom();
+      down=true; lock=null; sx=e.clientX; sy=e.clientY; sp=pos; pid=e.pointerId; t0=performance.now();
+      lastY=e.clientY; lastT=t0; vel=0;
+      root.classList.add('dragging');
       try{root.setPointerCapture(pid);}catch(_){}
     });
     root.addEventListener('pointermove',function(e){
-      if(!down||e.pointerId!==pid) return;
+      if(!down||e.pointerId!==pid)return;
       var dx=e.clientX-sx, dy=e.clientY-sy;
       if(lock===null){
-        if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy)){ lock='x'; }
-        else if(Math.abs(dy)>12){ lock='y'; down=false; return; }
+        if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy))lock='x';
+        else if(Math.abs(dy)>12)lock='y';
         else return;
       }
       if(lock==='x'){
         var r=root.getBoundingClientRect();
-        set(sp+dx/r.width*100);
-        if(e.cancelable) e.preventDefault();
+        setRaf(sp+dx/r.width*100);
+      }else{
+        var now=performance.now(), dt=Math.max(1,now-lastT), ddy=e.clientY-lastY;
+        vel=-ddy/dt;
+        window.scrollBy(0,-ddy);
+        lastY=e.clientY; lastT=now;
       }
+      if(e.cancelable)e.preventDefault();
     });
-    function up(e){ if(e.pointerId===pid){ down=false; lock=null; } }
-    root.addEventListener('pointerup',up);
-    root.addEventListener('pointercancel',up);
+    function end(e,isUp){
+      if(e.pointerId!==pid)return;
+      var wasDown=down, wasScroll=(lock==='y');
+      down=false; lock=null;
+      root.classList.remove('dragging');
+      if(!isUp||!wasDown)return;
+      var dx=e.clientX-sx, dy=e.clientY-sy, dt=performance.now()-t0;
+      if(!wasScroll&&Math.hypot(dx,dy)<6&&dt<300){
+        var r=root.getBoundingClientRect();
+        glideTo((e.clientX-r.left)/r.width*100);
+        return;
+      }
+      if(wasScroll&&Math.abs(vel)>0.15){
+        var v=vel, last=performance.now();
+        (function mo(now){
+          var d=Math.min(50,now-last); last=now;
+          window.scrollBy(0,v*d);
+          v*=Math.pow(0.94,d/16.7);
+          if(Math.abs(v)>0.05)momId=requestAnimationFrame(mo);else momId=null;
+        })(last);
+      }
+    }
+    root.addEventListener('pointerup',function(e){end(e,true);});
+    root.addEventListener('pointercancel',function(e){end(e,false);});
+    root.addEventListener('keydown',function(e){
+      var step=0;
+      if(e.key==='ArrowLeft')step=-4;
+      else if(e.key==='ArrowRight')step=4;
+      else if(e.key==='Home'){stopGlide();set(2);e.preventDefault();return;}
+      else if(e.key==='End'){stopGlide();set(98);e.preventDefault();return;}
+      else return;
+      e.preventDefault(); stopGlide(); set(pos+step);
+    });
   }
   return {html:html,css:css,init:init};
 }
