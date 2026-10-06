@@ -420,26 +420,33 @@ function fSide(pid){
 function fToggle(pid){
   var P=PAIRS[pid];
   var html='<div class="__S__" style="max-width:780px;margin:0 auto">'
-    +'<div style="display:inline-flex;background:#efe7d6;border-radius:999px;padding:4px;margin-bottom:12px">'
-    +'<button class="opt on" data-v="a" style="touch-action:manipulation">'+P.la+'</button>'
-    +'<button class="opt" data-v="b" style="touch-action:manipulation">'+P.lb+'</button></div>'
+    +'<button class="flipbtn" role="switch" aria-checked="false" aria-label="Flip between '+P.la+' and '+P.lb+'" style="touch-action:manipulation">'
+    +'<span class="thumb"></span>'
+    +'<span class="side s-a">'+P.la+'</span>'
+    +'<span class="side s-b">'+P.lb+'</span></button>'
     +'<div class="stage" style="position:relative;border-radius:16px;overflow:hidden;background:#e7e0d2;'+frameStyle(pid)+'">'
     +'<div class="v vb" style="position:absolute;inset:0;opacity:0;transition:opacity .45s ease;pointer-events:none">'+fillInner(P,'b')+'</div>'
     +'<div class="v va" style="position:absolute;inset:0;opacity:1;transition:opacity .45s ease;pointer-events:none">'+fillInner(P,'a')+'</div>'
     +'</div></div>';
-  var css='__S__ .opt{border:none;background:transparent;padding:9px 22px;border-radius:999px;font-weight:700;font-size:14px;color:#2b2118;cursor:pointer;font-family:inherit}'
-    +'__S__ .opt.on{background:#2b2118;color:#fff8ea}'
-    +'@media (prefers-reduced-motion:reduce){__S__ .v{transition:none}}';
+  var css='__S__ .flipbtn{position:relative;display:flex;width:100%;max-width:420px;margin:0 auto 12px;background:#efe7d6;border:none;border-radius:999px;padding:5px;cursor:pointer;font-family:inherit}'
+    +'__S__ .thumb{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);background:#2b2118;border-radius:999px;transition:left .28s cubic-bezier(.5,0,.2,1.15)}'
+    +'__S__ .side{position:relative;z-index:1;flex:1;text-align:center;padding:10px 0;font-weight:800;font-size:14px;color:#8a7a5f;transition:color .25s;pointer-events:none}'
+    +'__S__ .s-a{color:#fff8ea}'
+    +'__S__ .flipbtn.flipped .thumb{left:50%}'
+    +'__S__ .flipbtn.flipped .s-a{color:#8a7a5f}'
+    +'__S__ .flipbtn.flipped .s-b{color:#fff8ea}'
+    +'__S__ .flipbtn:focus-visible{outline:2px solid #e8833a;outline-offset:3px}'
+    +'@media (prefers-reduced-motion:reduce){__S__ .v{transition:none}__S__ .thumb{transition:none}}';
+  /* One button: every tap flips. No side-picking. */
   function init(root){
-    var opts=root.querySelectorAll('.opt'), va=root.querySelector('.va'), vb=root.querySelector('.vb');
-    opts.forEach(function(b){
-      b.addEventListener('click',function(){
-        opts.forEach(function(o){o.classList.remove('on');});
-        b.classList.add('on');
-        var showB=b.getAttribute('data-v')==='b';
-        va.style.opacity=showB?'0':'1';
-        vb.style.opacity=showB?'1':'0';
-      });
+    var btn=root.querySelector('.flipbtn'), va=root.querySelector('.va'), vb=root.querySelector('.vb');
+    var onB=false;
+    btn.addEventListener('click',function(){
+      onB=!onB;
+      if(onB){btn.classList.add('flipped');}else{btn.classList.remove('flipped');}
+      btn.setAttribute('aria-checked',onB?'true':'false');
+      va.style.opacity=onB?'0':'1';
+      vb.style.opacity=onB?'1':'0';
     });
   }
   return {html:html,css:css,init:init};
